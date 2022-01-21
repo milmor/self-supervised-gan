@@ -1,3 +1,5 @@
+import os
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.applications import vgg16
