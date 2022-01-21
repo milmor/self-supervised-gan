@@ -43,7 +43,6 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
         disc_total_loss_avg(d_total)
         gp_avg(gp)
         
-
     noise = tf.random.normal([hparams['batch_size'], hparams['noise_dim']])
     
     # Train the generator

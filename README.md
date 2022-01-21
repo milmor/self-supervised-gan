@@ -7,6 +7,9 @@ Implementation of the paper:
 
 See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pytorch implementation.
 
+## Examples
+![](images/animation_1.gif "TransGAN on CIFAR-10")
+
 
 ## Dependencies
 - Python 3.8
