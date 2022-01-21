@@ -102,6 +102,39 @@ class InitLayer(layers.Layer):
         return self.conv(x)
 
 
+class Generator_64(tf.keras.models.Model):
+    def __init__(self, filters=1024, initializer='orthogonal'):
+        super(Generator_64, self).__init__()
+        self.init = InitLayer()
+        
+        self.up_8 = upBlockComp(filters, initializer=initializer)
+        self.up_16 = upBlock(filters // 2, initializer=initializer)
+        self.up_32 = upBlockComp(filters // 4, initializer=initializer)
+       
+        self.up_64 = upBlock(filters // 8, initializer=initializer)
+        self.se_64 = SEBlock(filters // 8, initializer=initializer)
+        
+        self.up_128 = upBlockComp(filters // 16, initializer=initializer)
+        self.se_128 = SEBlock(filters // 16, initializer=initializer)
+        
+        self.up_256 = upBlock(filters // 32, initializer=initializer)
+        self.se_256 = SEBlock(filters // 32, initializer=initializer)
+        self.ch_conv = layers.Conv2D(3, 3, padding='same', kernel_initializer=initializer)
+        self.tanh = layers.Activation('tanh', dtype='float32')
+                       
+    def call(self, z):
+        z = normalize_2nd_moment(z)
+        feat_4 = self.init(z)
+        feat_8 = self.up_8(feat_4)   
+        feat_16 = self.up_16(feat_8) 
+        feat_32 = self.up_32(feat_16) 
+        feat_64 = self.up_64(feat_32) * self.se_64(feat_4)
+        feat_128 = self.up_128(feat_64) * self.se_128(feat_8)
+        feat_256 = self.up_256(feat_128) * self.se_256(feat_16)
+        img_256 = self.ch_conv(feat_256)
+        return [self.tanh(img_256)]
+
+
 class DownBlockComp(layers.Layer):
     def __init__(self, filters, initializer='orthogonal'):
         super(DownBlockComp, self).__init__()
@@ -127,3 +160,56 @@ class DownBlockComp(layers.Layer):
 
     def call(self, x):
         return (self.main(x) + self.direct(x)) / 2
+
+
+def decode_image(filters=128, initializer='orthogonal'):
+    encode_img = tf.keras.Sequential([
+        upBlock(filters, initializer=initializer),
+        upBlock(filters // 2, initializer=initializer),
+        upBlock(filters // 4, initializer=initializer),
+        upBlock(filters // 8, initializer=initializer),
+        layers.Conv2D(3, 3, padding='same', kernel_initializer=initializer),
+        layers.Activation('tanh', dtype='float32')
+    ])
+    return encode_img
+
+
+class Discriminator(tf.keras.models.Model):
+    def __init__(self, filters=128, initializer='orthogonal',
+                 dec_dim=128):
+        super(Discriminator, self).__init__()
+        '''Encode image'''
+        self.down_from_big = tf.keras.Sequential([
+            layers.Conv2D(filters // 32, kernel_size=3, padding='same', 
+                use_bias=False, kernel_initializer=initializer),
+            layers.LeakyReLU(0.2)
+        ])
+        self.down_128 = DownBlockComp(filters // 16, initializer=initializer)
+        self.down_64 = DownBlockComp(filters // 8, initializer=initializer)
+        self.down_32 = DownBlockComp(filters // 4, initializer=initializer)
+        self.down_16 = DownBlockComp(filters // 2, initializer=initializer)
+        self.down_8 = DownBlockComp(filters, initializer=initializer)
+
+        '''Logits'''
+        self.logits = tf.keras.Sequential([
+            layers.Conv2D(filters, kernel_size=1, padding='valid', 
+                use_bias=False, kernel_initializer=initializer),  
+            layers.LeakyReLU(0.2),
+            layers.Conv2D(1, kernel_size=4, padding='valid', 
+                use_bias=False, kernel_initializer=initializer), 
+            layers.Flatten()
+        ])
+        self.decoder = decode_image(dec_dim, initializer=initializer)
+ 
+    def call(self, img, decode=False):
+        feat_256 = self.down_from_big(img)
+        feat_128 = self.down_128(feat_256)  
+        feat_64 = self.down_64(feat_128)  
+        feat_32 = self.down_32(feat_64)  
+        feat_16 = self.down_16(feat_32)
+        feat_8 = self.down_8(feat_16)
+
+        if decode:
+            return [self.logits(feat_8), self.decoder(feat_8)]
+        else:
+            return [self.logits(feat_8)]
