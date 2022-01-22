@@ -3,7 +3,8 @@ Implementation of the paper:
 
 > Bingchen Liu, Yizhe Zhu, Kunpeng Song and Ahmed Elgammal. [Towards Faster and Stabilized GAN Training for High-fidelity Few-shot Image Synthesis](https://arxiv.org/abs/2101.04775). 
 
-![Architecture](./images/disc_arch.png)
+![Gen architecture](./images/gen_arch.png)
+![Disc architecture](./images/disc_arch.png)
 
 See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pytorch implementation.
 
@@ -23,7 +24,7 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 ### Train
 Use `--train_dir=<dataset_path>` to provide the dataset path. 
 ```
-python train.py --train_dir=<dataset_path> -
+python train.py --train_dir=<dataset_path>
 ```
 
 ## Licence
