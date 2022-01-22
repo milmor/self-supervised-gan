@@ -21,9 +21,9 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Usage
 ### Train
-Use `--train_dir=<train_dataset_path>` to provide the dataset path. 
+Use `--train_dir=<dataset_path>` to provide the dataset path. 
 ```
-python train.py --train_dir=<train_dataset_path> -
+python train.py --train_dir=<dataset_path> -
 ```
 
 ## Licence

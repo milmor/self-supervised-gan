@@ -20,8 +20,7 @@ def run_training(args):
     main_dir = args.main_dir
     run_dir = args.run_dir
 
-    ckp_interval = args.ckpt_interval
-    num_examples_to_generate = 64
+    ckpt_interval = args.ckpt_interval
     epochs = args.epochs
     train_seed = args.train_seed
     test_seed = args.test_seed
@@ -70,18 +69,19 @@ def run_training(args):
                                      beta_1=hparams['d_beta_1'],
                                      beta_2=hparams['d_beta_2'])
 
+    num_examples_to_generate = 64
     noise_seed = tf.random.normal([num_examples_to_generate, 
                                    hparams['noise_dim']], seed=test_seed)
     
     # Metrics
     gen_loss_avg = tf.keras.metrics.Mean()
     disc_loss_avg = tf.keras.metrics.Mean()
-    disc_total_loss_avg = tf.keras.metrics.Mean()
     gp_avg = tf.keras.metrics.Mean()
     rec_avg = tf.keras.metrics.Mean()
+    disc_total_loss_avg = tf.keras.metrics.Mean()
 
-    metrics = [gen_loss_avg, disc_loss_avg, disc_total_loss_avg,
-               gp_avg, rec_avg]
+    metrics = [gen_loss_avg, disc_loss_avg,
+               gp_avg, rec_avg, disc_total_loss_avg]
 
     checkpoint_dir = os.path.join(model_dir, 'training-checkpoints')
     ckpt = tf.train.Checkpoint(generator_optimizer=g_opt,
@@ -106,18 +106,18 @@ def run_training(args):
         rec_avg.reset_states()
         gp_avg.reset_states()
 
-        for image_batch in train_ds:
+        for image_batch in train_ds.take(10):
             train_step(image_batch, generator, discriminator, g_opt, d_opt, 
                g_loss, d_loss, perc_loss, metrics)
 
         # Print and save Tensorboard
         print('Time for epoch {} is {} sec'.format(step_int, time.time()-start))
         print('Generator loss: {:.4f}'.format(gen_loss_avg.result()))
-        print('Discriminator loss: {:.4f}'.format(disc_loss_avg.result())) 
-        print('Discriminator total loss: {:.4f}'.format(disc_total_loss_avg.result())) 
+        print('Discriminator loss: {:.4f}'.format(disc_loss_avg.result()))
         print('GP: {:.4f}'.format(gp_avg.result())) 
         print('Reconstruction loss: {:.4f}'.format(rec_avg.result())) 
-        
+        print('Discriminator total loss: {:.4f}'.format(disc_total_loss_avg.result()))    
+    
         with writer.as_default():
             tf.summary.scalar('generator_loss', gen_loss_avg.result(), step=step_int)
             tf.summary.scalar('discriminator_loss', disc_loss_avg.result(), step=step_int)
@@ -127,6 +127,9 @@ def run_training(args):
         # Generate and save test images plot
         save_generator_img(generator, step_int, noise_seed, gen_test_dir)
         save_decoder_img(discriminator, step_int, train_batch, disc_test_dir)
+
+        if (step_int) % ckpt_interval == 0:
+            ckpt_manager.save(step_int)
       
         ckpt.epoch.assign_add(1)
 
@@ -154,17 +157,16 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
             gp = 0.0
             if hparams['gp_weight'] != 0:
                 gp = gradient_penalty(
-                    discriminator, real_images, 
-                    fake_images) * hparams['gp_weight']
+                    discriminator, real_images, fake_images) * hparams['gp_weight']
                 
             d_total = d_loss + gp + r_loss
 
         disc_gradients = disc_tape.gradient(d_total, discriminator.trainable_variables)
         d_opt.apply_gradients(zip(disc_gradients, discriminator.trainable_variables)) 
-        disc_loss_avg(d_loss)
+        disc_loss_avg(d_loss)  
+        gp_avg(gp)
         rec_avg(r_loss)
         disc_total_loss_avg(d_total)
-        gp_avg(gp)
         
     noise = tf.random.normal([hparams['batch_size'], hparams['noise_dim']])
     
