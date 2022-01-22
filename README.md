@@ -18,6 +18,7 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 ## Dependencies
 - Python 3.8
 - Tensorfow 2.7
+- Tensorflow Addons 0.15
 
 
 ## Usage
@@ -26,6 +27,27 @@ Use `--train_dir=<dataset_path>` to provide the dataset path.
 ```
 python train.py --train_dir=<dataset_path>
 ```
+
+### Hparams setting
+Set hyperparameters on the `hparams.py` file.
+
+### Tensorboard
+Run `tensorboard --logdir ./`.
+
+
+## References
+Code:
+- This model depends on other files that may be licensed under different open source licenses.
+- Self-Supervised GAN uses Shengyu Zhao, Zhijian Liu, Ji Lin, Jun-Yan Zhu and Song Han. [Differentiable Augmentation](https://arxiv.org/abs/2006.10738). Under BSD 2-Clause "Simplified" License.
+
+Implementation notes:
+- Self-supervised discriminator using a single reconstruction decoder and perceptual loss
+- Hinge loss GAN and WGAN gradient penalty
+- Orthogonal initialization
+- Skip-layer excitation generator
+- Adam with β1 = 0.5 and β2 = 0.99. 
+- Batch size = 8
+
 
 ## Licence
 MIT

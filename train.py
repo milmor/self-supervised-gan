@@ -10,12 +10,16 @@ import time
 import tensorflow as tf
 import json
 from diffaug import DiffAugment
+from hparams import hparams
 from model import *
 from utils import *
 from train import *
 
 
 def run_training(args):
+    print('\n#########################')
+    print('Self-Supervised GAN Train')
+    print('#########################\n')
     train_dir = args.train_dir
     main_dir = args.main_dir
     run_dir = args.run_dir
@@ -52,6 +56,7 @@ def run_training(args):
 
     train_ds = create_train_ds(train_dir, hparams['batch_size'], train_seed)
 
+    # Define model
     generator = Generator_64(filters=hparams['g_dim'], 
                              initializer=hparams['g_initializer'])
     discriminator = Discriminator(filters=hparams['d_dim'], 
@@ -111,7 +116,7 @@ def run_training(args):
                g_loss, d_loss, perc_loss, metrics)
 
         # Print and save Tensorboard
-        print('Time for epoch {} is {} sec'.format(step_int, time.time()-start))
+        print('\nTime for epoch {} is {} sec'.format(step_int, time.time()-start))
         print('Generator loss: {:.4f}'.format(gen_loss_avg.result()))
         print('Discriminator loss: {:.4f}'.format(disc_loss_avg.result()))
         print('GP: {:.4f}'.format(gp_avg.result())) 
@@ -130,6 +135,7 @@ def run_training(args):
 
         if (step_int) % ckpt_interval == 0:
             ckpt_manager.save(step_int)
+            print('Checkpoint saved at epoch {}'.format(step_int)) 
       
         ckpt.epoch.assign_add(1)
 
@@ -145,19 +151,20 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
     for i in range(hparams['d_steps']):
         with tf.GradientTape() as disc_tape:
             generator_output = generator(noise, training=True)
-            real_images = DiffAugment(real_images, hparams['policy'])
-            fake_images = DiffAugment(generator_output[0], hparams['policy'])
+            real_aug_images = DiffAugment(real_images, hparams['policy'])
+            fake_aug_images = DiffAugment(generator_output[0], hparams['policy'])
             
-            real_disc_output = discriminator(real_images, decode=True, training=True)
-            fake_disc_output = discriminator(fake_images, training=True)
+            real_disc_output = discriminator(real_aug_images, decode=True, training=True)
+            fake_disc_output = discriminator(fake_aug_images, training=True)
 
             d_loss = disc_loss(real_disc_output[0], fake_disc_output[0])
-            r_loss = rec_loss(real_images, real_disc_output[1]) * hparams['rec_weight']
+            r_loss = rec_loss(real_aug_images, real_disc_output[1]) * hparams['rec_weight']
             
             gp = 0.0
             if hparams['gp_weight'] != 0:
                 gp = gradient_penalty(
-                    discriminator, real_images, fake_images) * hparams['gp_weight']
+                        discriminator, real_images, 
+                        generator_output[0], hparams['policy']) * hparams['gp_weight']
                 
             d_total = d_loss + gp + r_loss
 
@@ -173,14 +180,30 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
     # Train the generator
     with tf.GradientTape() as gen_tape:
         generator_output = generator(noise, training=True)
-        fake_images = DiffAugment(generator_output[0], hparams['policy'])
-        fake_disc_output = discriminator(fake_images, training=True)
+        fake_aug_images = DiffAugment(generator_output[0], hparams['policy'])
+        fake_disc_output = discriminator(fake_aug_images, training=True)
         
         gen_loss = gen_loss(fake_disc_output[0])
         
     gen_gradients = gen_tape.gradient(gen_loss, generator.trainable_variables)
     g_opt.apply_gradients(zip(gen_gradients, generator.trainable_variables))
     gen_loss_avg(gen_loss)
+
+
+def gradient_penalty(critic, real_samples, fake_samples, policy):
+    alpha = tf.random.uniform([real_samples.shape[0], 1, 1, 1], minval=0., maxval=1.)
+    diff = fake_samples - real_samples
+    interpolation = real_samples + alpha * diff
+
+    with tf.GradientTape() as gradient_tape:
+        gradient_tape.watch(interpolation)
+        int_aug_images = DiffAugment(interpolation, policy)
+        pred = critic(int_aug_images, training=True)
+
+    gradients = gradient_tape.gradient(pred[0], [interpolation])[0]
+    norm = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
+    gradient_penalty = tf.reduce_mean((norm - 1.0) ** 2)
+    return gradient_penalty
 
 
 def main():

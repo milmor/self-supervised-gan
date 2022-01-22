@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.applications import vgg16
-from hparams import hparams
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
@@ -30,20 +29,6 @@ def create_train_ds(train_dir, batch_size, seed=15):
     print('Train dataset size: {}'.format(BUFFER_SIZE))  
     print('Batches: {}'.format(tf.data.experimental.cardinality(ds))) 
     return ds
-
-def gradient_penalty(critic, real_samples, fake_samples):
-    alpha = tf.random.uniform([real_samples.shape[0], 1, 1, 1], minval=0., maxval=1.)
-    diff = fake_samples - real_samples
-    interpolation = real_samples + alpha * diff
-
-    with tf.GradientTape() as gradient_tape:
-        gradient_tape.watch(interpolation)
-        pred = critic(interpolation, training=True)
-
-    gradients = gradient_tape.gradient(pred[0], [interpolation])[0]
-    norm = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
-    gradient_penalty = tf.reduce_mean((norm - 1.0) ** 2)
-    return gradient_penalty
 
 def save_generator_img(model, epoch, noise, direct, plot_size=15):
     predictions = model(noise, training=False)
@@ -88,7 +73,7 @@ def save_decoder_img(model, epoch, img, direct, plot_size=6):
     plt.close('all')
 
 def get_loss(loss):
-    if hparams['loss'] == 'bce':
+    if loss == 'bce':
         cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         def discriminator_loss(real_img, fake_img):
             real_loss = cross_entropy(tf.ones_like(real_img), real_img)
@@ -100,7 +85,7 @@ def get_loss(loss):
 
         return generator_loss, discriminator_loss
 
-    elif hparams['loss'] == 'hinge':
+    elif loss == 'hinge':
         def d_real_loss(logits):
             return tf.reduce_mean(tf.nn.relu(1.0 - logits))
 
@@ -117,7 +102,7 @@ def get_loss(loss):
 
         return generator_loss, discriminator_loss
 
-    elif hparams['loss'] == 'wgan':
+    elif loss == 'wgan':
         def discriminator_loss(real_img, fake_img):
             real_loss = tf.reduce_mean(real_img)
             fake_loss = tf.reduce_mean(fake_img)
