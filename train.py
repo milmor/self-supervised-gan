@@ -106,7 +106,7 @@ def run_training(args):
         rec_avg.reset_states()
         gp_avg.reset_states()
 
-        for image_batch in train_ds.take(10):
+        for image_batch in train_ds:
             train_step(image_batch, generator, discriminator, g_opt, d_opt, 
                g_loss, d_loss, perc_loss, metrics)
 
