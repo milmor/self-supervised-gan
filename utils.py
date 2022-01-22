@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.applications import vgg16
-import json
 from hparams import hparams
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -12,7 +11,7 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 def deprocess(img):
     return img * 127.5 + 127.5
 
-def convert(file_path):
+def train_convert(file_path):
     img = tf.io.read_file(file_path)
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, [256, 256])
@@ -25,7 +24,7 @@ def create_train_ds(train_dir, batch_size, seed=15):
     BUFFER_SIZE = tf.data.experimental.cardinality(img_paths)
      
     img_paths = img_paths.cache().shuffle(BUFFER_SIZE, seed=seed)
-    ds = img_paths.map(convert, num_parallel_calls=AUTOTUNE).batch(
+    ds = img_paths.map(train_convert, num_parallel_calls=AUTOTUNE).batch(
         batch_size, drop_remainder=True, num_parallel_calls=AUTOTUNE).prefetch(
         AUTOTUNE)
     print('Train dataset size: {}'.format(BUFFER_SIZE))  
@@ -87,12 +86,6 @@ def save_decoder_img(model, epoch, img, direct, plot_size=6):
     plt.clf() 
     # Closes all the figure windows.
     plt.close('all')
-
-def save_hparams(model_dir, name):
-    json_hparams = json.dumps(hparams)
-    f = open(os.path.join(model_dir, '{}_hparams.json'.format(name)), 'w')
-    f.write(json_hparams)
-    f.close()
 
 def get_loss(loss):
     if hparams['loss'] == 'bce':
