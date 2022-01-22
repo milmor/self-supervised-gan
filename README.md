@@ -7,15 +7,24 @@ Implementation of the paper:
 
 See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pytorch implementation.
 
+
 ## Examples
 ![](images/animation_1.gif "img 1")
 ![](images/animation_2.gif "img 2")
 ![](images/animation_3.gif "img 3")
 
+
 ## Dependencies
 - Python 3.8
 - Tensorfow 2.7
 
+
+## Usage
+### Train
+Use `--train_dir=<train_dataset_path>` to provide the dataset path. 
+```
+python train.py --train_dir=<train_dataset_path> -
+```
 
 ## Licence
 MIT
