@@ -23,9 +23,9 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Usage
 ### Train
-Use `--train_dir=<file_pattern>` to provide the dataset `file_pattern`. The file pattern "./dataset_path/*.jpg" builds a jpg image dataset.
+Use `--file_pattern=<file_pattern>` to provide the dataset `file_pattern`. The file pattern "./dataset_path/*.jpg" builds a jpg image dataset.
 ```
-python train.py --dataset_path=./dataset_path/*.jpg
+python train.py --file_pattern=./dataset_path/*.jpg
 ```
 
 ### Hparams setting

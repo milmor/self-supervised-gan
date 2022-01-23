@@ -19,7 +19,7 @@ def run_training(args):
     print('\n#########################')
     print('Self-Supervised GAN Train')
     print('#########################\n')
-    train_dir = args.train_dir
+    file_pattern = args.file_pattern
     main_dir = args.main_dir
     run_dir = args.run_dir
 
@@ -56,7 +56,7 @@ def run_training(args):
     os.makedirs(disc_test_dir, exist_ok=True)
 
     # Define model
-    train_ds = create_train_ds(train_dir, hparams['batch_size'], train_seed)
+    train_ds = create_train_ds(file_pattern, hparams['batch_size'], train_seed)
 
     generator = Generator_64(filters=hparams['g_dim'], 
                              initializer=hparams['g_initializer'])
@@ -209,7 +209,7 @@ def gradient_penalty(critic, real_samples, fake_samples):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train_dir')
+    parser.add_argument('--file_pattern')
     parser.add_argument('--main_dir', default='model-1')
     parser.add_argument('--run_dir', default='run-1')
     parser.add_argument('--ckpt_interval', type=int, default=5)
