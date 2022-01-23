@@ -23,13 +23,13 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Usage
 ### Train
-Use `--train_dir=<dataset_path>` to provide the dataset path. 
+Use `--train_dir=<file_pattern>` to provide the dataset `file_pattern`. The file pattern "./dataset_path/*.jpg" builds a jpg image dataset.
 ```
-python train.py --train_dir=<dataset_path>
+python train.py --dataset_path=./dataset_path/*.jpg
 ```
 
 ### Hparams setting
-Set hyperparameters on the `hparams.py` file.
+Set `batch_size` and `learning_rate` on the `hparams.py` file.
 
 ### Tensorboard
 Run `tensorboard --logdir ./`.
@@ -41,12 +41,12 @@ Code:
 - Self-Supervised GAN uses Shengyu Zhao, Zhijian Liu, Ji Lin, Jun-Yan Zhu and Song Han. [Differentiable Augmentation](https://arxiv.org/abs/2006.10738). Under BSD 2-Clause "Simplified" License.
 
 Implementation notes:
-- Self-supervised discriminator using a single reconstruction decoder and perceptual loss
-- Hinge loss GAN and WGAN gradient penalty
-- Orthogonal initialization
-- Skip-layer excitation generator
+- Self-supervised discriminator with a single reconstruction decoder and perceptual loss.
+- Hinge loss GAN and WGAN gradient penalty.
+- Orthogonal initialization.
+- Skip-layer excitation generator.
 - Adam with β1 = 0.5 and β2 = 0.99. 
-- Batch size = 8
+- Batch size = 8.
 
 
 ## Licence
