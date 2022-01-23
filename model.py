@@ -33,13 +33,13 @@ class GLU(layers.Layer):
 class NoiseInjection(layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.weight = self.add_weight(
-            self.name, shape=(), initializer="zeros", trainable=True)
+        self.w = self.add_weight(
+            self.name, shape=(1), initializer="zeros", dtype=self.dtype, trainable=True)
 
     def call(self, feat):
         batch, height, width, _ = feat.shape
         noise = tf.random.normal((batch, height, width, 1), dtype=self.dtype)
-        return feat + self.weight * noise
+        return feat + self.w * noise
 
 
 def upBlockComp(filters, kernel_size=3, initializer='orthogonal'):

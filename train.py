@@ -10,7 +10,6 @@ import time
 import tensorflow as tf
 import json
 from diffaug import DiffAugment
-from hparams import hparams
 from model import *
 from utils import *
 from train import *
@@ -29,6 +28,7 @@ def run_training(args):
     train_seed = args.train_seed
     test_seed = args.test_seed
     max_ckpt_to_keep = args.max_ckpt_to_keep
+    global hparams
 
     model_dir = os.path.join(main_dir, run_dir)
     hparams_file = os.path.join(model_dir, run_dir + '_hparams.json')
@@ -97,7 +97,7 @@ def run_training(args):
     ckpt_manager = tf.train.CheckpointManager(ckpt, directory=checkpoint_dir, 
                                               max_to_keep=max_ckpt_to_keep)
 
-    ckpt.restore(ckpt_manager.latest_checkpoint)
+    ckpt.restore(ckpt_manager.latest_checkpoint).expect_partial()
 
     train_batch = next(iter(train_ds))
 
@@ -111,7 +111,7 @@ def run_training(args):
         rec_avg.reset_states()
         gp_avg.reset_states()
 
-        for image_batch in train_ds:
+        for image_batch in train_ds.take(100):
             train_step(image_batch, generator, discriminator, g_opt, d_opt, 
                g_loss, d_loss, perc_loss, metrics)
 
@@ -163,8 +163,7 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
             gp = 0.0
             if hparams['gp_weight'] != 0:
                 gp = gradient_penalty(
-                        discriminator, real_images, 
-                        generator_output[0], hparams['policy']) * hparams['gp_weight']
+                        discriminator, real_images, generator_output[0]) * hparams['gp_weight']
                 
             d_total = d_loss + gp + r_loss
 
@@ -190,15 +189,14 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
     gen_loss_avg(gen_loss)
 
 
-def gradient_penalty(critic, real_samples, fake_samples, policy):
+def gradient_penalty(critic, real_samples, fake_samples):
     alpha = tf.random.uniform([real_samples.shape[0], 1, 1, 1], minval=0., maxval=1.)
     diff = fake_samples - real_samples
     interpolation = real_samples + alpha * diff
 
     with tf.GradientTape() as gradient_tape:
         gradient_tape.watch(interpolation)
-        int_aug_images = DiffAugment(interpolation, policy)
-        pred = critic(int_aug_images, training=True)
+        pred = critic(DiffAugment(interpolation, hparams['policy']), training=True)
 
     gradients = gradient_tape.gradient(pred[0], [interpolation])[0]
     norm = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1, 2, 3]))
