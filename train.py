@@ -97,7 +97,9 @@ def run_training(args):
     ckpt_manager = tf.train.CheckpointManager(ckpt, directory=checkpoint_dir, 
                                               max_to_keep=max_ckpt_to_keep)
 
-    ckpt.restore(ckpt_manager.latest_checkpoint).expect_partial()
+    if ckpt_manager.latest_checkpoint:    
+        ckpt.restore(ckpt_manager.latest_checkpoint)
+        print('Checkpoint restored from: {}'.format(ckpt_manager.latest_checkpoint))
 
     train_batch = next(iter(train_ds))
 
@@ -111,7 +113,7 @@ def run_training(args):
         rec_avg.reset_states()
         gp_avg.reset_states()
 
-        for image_batch in train_ds.take(100):
+        for image_batch in train_ds:
             train_step(image_batch, generator, discriminator, g_opt, d_opt, 
                g_loss, d_loss, perc_loss, metrics)
 
