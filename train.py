@@ -30,6 +30,7 @@ def run_training(args):
     max_ckpt_to_keep = args.max_ckpt_to_keep
     global hparams
 
+    # Create directory
     model_dir = os.path.join(main_dir, run_dir)
     hparams_file = os.path.join(model_dir, run_dir + '_hparams.json')
 
@@ -54,9 +55,9 @@ def run_training(args):
     os.makedirs(gen_test_dir, exist_ok=True)
     os.makedirs(disc_test_dir, exist_ok=True)
 
+    # Define model
     train_ds = create_train_ds(train_dir, hparams['batch_size'], train_seed)
 
-    # Define model
     generator = Generator_64(filters=hparams['g_dim'], 
                              initializer=hparams['g_initializer'])
     discriminator = Discriminator(filters=hparams['d_dim'], 
@@ -103,6 +104,7 @@ def run_training(args):
 
     train_batch = next(iter(train_ds))
 
+    # Train
     for _ in range(int(ckpt.epoch), epochs):
         start = time.time()
         step_int = int(ckpt.epoch)
@@ -153,14 +155,13 @@ def train_step(real_images, generator, discriminator, g_opt, d_opt,
     for i in range(hparams['d_steps']):
         with tf.GradientTape() as disc_tape:
             generator_output = generator(noise, training=True)
-            real_aug_images = DiffAugment(real_images, hparams['policy'])
-            fake_aug_images = DiffAugment(generator_output[0], hparams['policy'])
+            real_aug = DiffAugment(real_images, hparams['policy'])
             
-            real_disc_output = discriminator(real_aug_images, decode=True, training=True)
-            fake_disc_output = discriminator(fake_aug_images, training=True)
+            real_disc_output = discriminator(real_aug, decode=True, training=True)
+            fake_disc_output = discriminator(DiffAugment(generator_output[0], hparams['policy']), training=True)
 
             d_loss = disc_loss(real_disc_output[0], fake_disc_output[0])
-            r_loss = rec_loss(real_aug_images, real_disc_output[1]) * hparams['rec_weight']
+            r_loss = rec_loss(real_aug, real_disc_output[1]) * hparams['rec_weight']
             
             gp = 0.0
             if hparams['gp_weight'] != 0:
