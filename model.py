@@ -102,9 +102,9 @@ class InitLayer(layers.Layer):
         return self.conv(x)
 
 
-class Generator_64(tf.keras.models.Model):
+class Generator(tf.keras.models.Model):
     def __init__(self, filters=1024, initializer='orthogonal'):
-        super(Generator_64, self).__init__()
+        super(Generator, self).__init__()
         self.init = InitLayer()
         
         self.up_8 = upBlockComp(filters, initializer=initializer)

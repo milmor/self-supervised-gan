@@ -58,7 +58,7 @@ def run_training(args):
     # Define model
     train_ds = create_train_ds(file_pattern, hparams['batch_size'], train_seed)
 
-    generator = Generator_64(filters=hparams['g_dim'], 
+    generator = Generator(filters=hparams['g_dim'], 
                              initializer=hparams['g_initializer'])
     discriminator = Discriminator(filters=hparams['d_dim'], 
                                   initializer=hparams['d_initializer'], 
