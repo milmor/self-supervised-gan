@@ -23,7 +23,7 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Usage
 ### Train
-Use `--file_pattern=<file_pattern>` to provide the dataset `file_pattern`. The file pattern "./dataset_path/*.jpg" builds a jpg image dataset.
+Use `--file_pattern=<file_pattern>` to provide the dataset `file_pattern`. The file pattern __./dataset_path/*.jpg__ builds a jpg dataset.
 ```
 python train.py --file_pattern=./dataset_path/*.jpg
 ```
@@ -43,8 +43,8 @@ Code:
 Implementation notes:
 - Self-supervised discriminator with a single reconstruction decoder and perceptual loss.
 - Hinge loss GAN and WGAN gradient penalty.
-- Orthogonal initialization.
 - Skip-layer excitation generator.
+- Orthogonal initialization.
 - Adam with β1 = 0.5 and β2 = 0.99. 
 - Batch size = 8.
 
