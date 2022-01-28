@@ -12,7 +12,6 @@ import json
 from diffaug import DiffAugment
 from model import *
 from utils import *
-from train import *
 
 
 def run_training(args):
@@ -133,7 +132,7 @@ def run_training(args):
             tf.summary.scalar('gp_loss', gp_avg.result(), step=step_int)
             tf.summary.scalar('reconstruction_loss', rec_avg.result(), step=step_int)
 
-        # Generate and save test images plot
+        # Generate and save test images
         save_generator_img(generator, step_int, noise_seed, gen_test_dir)
         save_decoder_img(discriminator, step_int, train_batch, disc_test_dir)
 
