@@ -28,6 +28,12 @@ Use `--file_pattern=<file_pattern>` to provide the dataset path and file pattern
 python train.py --file_pattern=./dataset_path/*.jpg
 ```
 
+### Generate
+Use `--main_dir=<main_dir>` to provide the model directory name.
+```
+python generate.py --main_dir=<main_dir>
+```
+
 ### Hparams setting
 Adjust hyperparameters on the `hparams.py` file.
 
