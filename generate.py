@@ -63,30 +63,26 @@ def run_generate(args):
 
     # Generate
     start = time.time()
-    gen_img = gen_batches(generator, n_images, batch_size, hparams['noise_dim'])
+    gen_img = gen_batches(generator, n_images, batch_size, hparams['noise_dim'], epoch_dir)
     print('Time: {:.4f} sec'.format(time.time()-start))  
 
-    denorm_img = np.clip(deprocess(gen_img), 0.0, 255.0).astype('uint8')
 
-    # Save
-    for i, image in enumerate(denorm_img):
-        img = Image.fromarray(image)
-        file_name = os.path.join(epoch_dir, '{}.jpg'.format(str(i)))
-        img.save(file_name)
-
-
-def gen_batches(model, n_images, batch_size, noise_dim, img_size=256):
+def gen_batches(model, n_images, batch_size, noise_dim, epoch_dir):
     n_batches = n_images // batch_size
     n_used_imgs = n_batches * batch_size
-    pred_img = np.empty((n_used_imgs, img_size, img_size, 3), 'float32')
     
     for i in tqdm(range(n_batches)):
         start = i * batch_size
-        end = start + batch_size
         noise = tf.random.normal([batch_size, noise_dim])
         gen_batch = model(noise, training=False)
-        pred_img[start:end] = gen_batch[0]
-    return pred_img
+        gen_batch = np.clip(deprocess(gen_batch[0]), 0.0, 255.0)
+
+        img_index = start
+        for img in gen_batch:
+            img = Image.fromarray(img.astype('uint8'))
+            file_name = os.path.join(epoch_dir, '{}.jpg'.format(str(img_index)))
+            img.save(file_name)
+            img_index += 1
 
 
 def main():

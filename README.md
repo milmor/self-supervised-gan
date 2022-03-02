@@ -17,8 +17,8 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Dependencies
 - Python 3.8
-- Tensorfow 2.7
-- Tensorflow Addons 0.15
+- Tensorfow 2.8
+- Tensorflow Addons 0.16
 
 
 ## Usage
