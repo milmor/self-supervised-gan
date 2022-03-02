@@ -89,8 +89,8 @@ def run_training(args):
                gp_avg, rec_avg, disc_total_loss_avg]
 
     checkpoint_dir = os.path.join(model_dir, 'training-checkpoints')
-    ckpt = tf.train.Checkpoint(generator_optimizer=g_opt,
-                               discriminator_optimizer=d_opt,
+    ckpt = tf.train.Checkpoint(g_opt=g_opt,
+                               d_opt=d_opt,
                                generator=generator,
                                discriminator=discriminator,
                                epoch=tf.Variable(0))
@@ -111,8 +111,9 @@ def run_training(args):
         # Clear metrics
         gen_loss_avg.reset_states()
         disc_loss_avg.reset_states()
-        rec_avg.reset_states()
         gp_avg.reset_states()
+        rec_avg.reset_states()
+        disc_total_loss_avg.reset_states()
 
         for image_batch in train_ds:
             train_step(image_batch, generator, discriminator, g_opt, d_opt, 
@@ -131,6 +132,7 @@ def run_training(args):
             tf.summary.scalar('discriminator_loss', disc_loss_avg.result(), step=step_int)
             tf.summary.scalar('gp_loss', gp_avg.result(), step=step_int)
             tf.summary.scalar('reconstruction_loss', rec_avg.result(), step=step_int)
+            tf.summary.scalar('discriminator_total_loss', disc_total_loss_avg.result(), step=step_int)
 
         # Generate and save test images
         save_generator_img(generator, step_int, noise_seed, gen_test_dir)

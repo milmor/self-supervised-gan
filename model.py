@@ -32,9 +32,9 @@ class GLU(layers.Layer):
 
 class NoiseInjection(layers.Layer):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(NoiseInjection, self).__init__(**kwargs)
         self.w = self.add_weight(
-            self.name, shape=(1), initializer="zeros", dtype=self.dtype, trainable=True)
+            'w', shape=(1), initializer='zeros', dtype=self.dtype, trainable=True)
 
     def call(self, feat):
         batch, height, width, _ = feat.shape
@@ -42,22 +42,36 @@ class NoiseInjection(layers.Layer):
         return feat + self.w * noise
 
 
-def upBlockComp(filters, kernel_size=3, initializer='orthogonal'):
-    block = tf.keras.Sequential([
+class upBlockComp(layers.Layer):
+    def __init__(self, filters, kernel_size=3, initializer='orthogonal', **kwargs):
+        super(upBlockComp, self).__init__(**kwargs)
+        self.up_conv = tf.keras.Sequential([
             layers.UpSampling2D(2),
             layers.Conv2D(filters*2, kernel_size=kernel_size, 
                 padding="same", use_bias=False, kernel_initializer=initializer),
-            NoiseInjection(),
-            layers.BatchNormalization(),
-            GLU(),
-            layers.Conv2D(filters*2, kernel_size=kernel_size, 
-                padding="same", use_bias=False, kernel_initializer=initializer),
-            NoiseInjection(),
+        ])
+        self.noise_1 = NoiseInjection()
+        self.bn_glu_1 = tf.keras.Sequential([
             layers.BatchNormalization(),
             GLU()
-    ])
-    return block
+        ])
+        self.conv = layers.Conv2D(filters*2, kernel_size=kernel_size, 
+            padding="same", use_bias=False, kernel_initializer=initializer)
+        self.noise_2 = NoiseInjection()
+        self.bn_glu_2 = tf.keras.Sequential([
+            layers.BatchNormalization(),
+            GLU()
+        ])
 
+    def call(self, x):
+        x = self.up_conv(x)
+        x = self.noise_1(x)
+        x = self.bn_glu_1(x)
+        x = self.conv(x)
+        x = self.noise_2(x)
+        x = self.bn_glu_2(x)
+        return x
+    
 
 def upBlock(filters, kernel_size=3, initializer='orthogonal'):
     block = tf.keras.Sequential([
