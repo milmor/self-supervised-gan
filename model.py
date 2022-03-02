@@ -42,23 +42,23 @@ class NoiseInjection(layers.Layer):
         return feat + self.w * noise
 
 
-class upBlockComp(layers.Layer):
+class UpBlockComp(layers.Layer):
     def __init__(self, filters, kernel_size=3, initializer='orthogonal', **kwargs):
-        super(upBlockComp, self).__init__(**kwargs)
+        super(UpBlockComp, self).__init__(**kwargs)
         self.up_conv = tf.keras.Sequential([
             layers.UpSampling2D(2),
             layers.Conv2D(filters*2, kernel_size=kernel_size, 
                 padding="same", use_bias=False, kernel_initializer=initializer),
         ])
         self.noise_1 = NoiseInjection()
-        self.bn_glu_1 = tf.keras.Sequential([
+        self.act_1 = tf.keras.Sequential([
             layers.BatchNormalization(),
             GLU()
         ])
         self.conv = layers.Conv2D(filters*2, kernel_size=kernel_size, 
             padding="same", use_bias=False, kernel_initializer=initializer)
         self.noise_2 = NoiseInjection()
-        self.bn_glu_2 = tf.keras.Sequential([
+        self.act_2 = tf.keras.Sequential([
             layers.BatchNormalization(),
             GLU()
         ])
@@ -66,10 +66,10 @@ class upBlockComp(layers.Layer):
     def call(self, x):
         x = self.up_conv(x)
         x = self.noise_1(x)
-        x = self.bn_glu_1(x)
+        x = self.act_1(x)
         x = self.conv(x)
         x = self.noise_2(x)
-        x = self.bn_glu_2(x)
+        x = self.act_2(x)
         return x
     
 
@@ -121,14 +121,14 @@ class Generator(tf.keras.models.Model):
         super(Generator, self).__init__()
         self.init = InitLayer()
         
-        self.up_8 = upBlockComp(filters, initializer=initializer)
+        self.up_8 = UpBlockComp(filters, initializer=initializer)
         self.up_16 = upBlock(filters // 2, initializer=initializer)
-        self.up_32 = upBlockComp(filters // 4, initializer=initializer)
+        self.up_32 = UpBlockComp(filters // 4, initializer=initializer)
        
         self.up_64 = upBlock(filters // 8, initializer=initializer)
         self.se_64 = SEBlock(filters // 8, initializer=initializer)
         
-        self.up_128 = upBlockComp(filters // 16, initializer=initializer)
+        self.up_128 = UpBlockComp(filters // 16, initializer=initializer)
         self.se_128 = SEBlock(filters // 16, initializer=initializer)
         
         self.up_256 = upBlock(filters // 32, initializer=initializer)
