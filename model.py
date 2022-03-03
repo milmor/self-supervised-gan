@@ -19,7 +19,7 @@ def normalize_2nd_moment(x, axis=1, eps=1e-8):
 
 class GLU(layers.Layer):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(GLU, self).__init__(**kwargs)
 
     def call(self, x):
         self.nc = x.shape[-1] // 2
@@ -33,22 +33,23 @@ class GLU(layers.Layer):
 class NoiseInjection(layers.Layer):
     def __init__(self, **kwargs):
         super(NoiseInjection, self).__init__(**kwargs)
-        self.w = self.add_weight(
-            'w', shape=(1), initializer='zeros', dtype=self.dtype, trainable=True)
+        self.weight = self.add_weight(
+            'weight', shape=(1), initializer='zeros', 
+            dtype=self.dtype, trainable=True)
 
     def call(self, feat):
         batch, height, width, _ = feat.shape
         noise = tf.random.normal((batch, height, width, 1), dtype=self.dtype)
-        return feat + self.w * noise
+        return feat + self.weight * noise
 
 
 class UpBlockComp(layers.Layer):
-    def __init__(self, filters, kernel_size=3, initializer='orthogonal', **kwargs):
-        super(UpBlockComp, self).__init__(**kwargs)
+    def __init__(self, filters, kernel_size=3, initializer='orthogonal'):
+        super(UpBlockComp, self).__init__()
         self.up_conv = tf.keras.Sequential([
             layers.UpSampling2D(2),
             layers.Conv2D(filters*2, kernel_size=kernel_size, 
-                padding="same", use_bias=False, kernel_initializer=initializer),
+                padding='same', use_bias=False, kernel_initializer=initializer),
         ])
         self.noise_1 = NoiseInjection()
         self.act_1 = tf.keras.Sequential([
@@ -56,7 +57,7 @@ class UpBlockComp(layers.Layer):
             GLU()
         ])
         self.conv = layers.Conv2D(filters*2, kernel_size=kernel_size, 
-            padding="same", use_bias=False, kernel_initializer=initializer)
+            padding='same', use_bias=False, kernel_initializer=initializer)
         self.noise_2 = NoiseInjection()
         self.act_2 = tf.keras.Sequential([
             layers.BatchNormalization(),
@@ -77,7 +78,7 @@ def upBlock(filters, kernel_size=3, initializer='orthogonal'):
     block = tf.keras.Sequential([
             layers.UpSampling2D(2),
             layers.Conv2D(filters*2, kernel_size=kernel_size, 
-                padding="same", use_bias=False, kernel_initializer=initializer),
+                padding='same', use_bias=False, kernel_initializer=initializer),
             layers.BatchNormalization(),
             GLU()
     ])
@@ -227,3 +228,4 @@ class Discriminator(tf.keras.models.Model):
             return [self.logits(feat_8), self.decoder(feat_8)]
         else:
             return [self.logits(feat_8)]
+

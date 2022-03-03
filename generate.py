@@ -16,9 +16,9 @@ from utils import *
 
 
 def run_generate(args):
-    print('\n#########################')
+    print('\n############################')
     print('Self-Supervised GAN Generate')
-    print('#########################\n')
+    print('############################\n')
     main_dir = args.main_dir
     run_dir = args.run_dir
     n_images = args.n_images
@@ -58,7 +58,7 @@ def run_generate(args):
     # Create epoch diractory
     test_dir = os.path.join(model_dir, 'test-dir')
     os.makedirs(test_dir, exist_ok=True)
-    epoch_dir = os.path.join(test_dir, 'ep{}-{}'.format(str(ckpt.epoch.numpy()), str(n_images)))
+    epoch_dir = os.path.join(test_dir, 'epoch{}-{}'.format(str(ckpt.epoch.numpy()), str(n_images)))
     os.makedirs(epoch_dir, exist_ok=True)
 
     # Generate
@@ -69,7 +69,6 @@ def run_generate(args):
 
 def gen_batches(model, n_images, batch_size, noise_dim, epoch_dir):
     n_batches = n_images // batch_size
-    n_used_imgs = n_batches * batch_size
     
     for i in tqdm(range(n_batches)):
         start = i * batch_size
@@ -91,7 +90,6 @@ def main():
     parser.add_argument('--run_dir', default='run-1')
     parser.add_argument('--n_images', type=int, default=500) 
     parser.add_argument('--batch_size', type=int, default=50)
-    parser.add_argument('--test_seed', type=int, default=15)   
     args = parser.parse_args()
 
     run_generate(args)
