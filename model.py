@@ -179,11 +179,13 @@ class DownBlockComp(layers.Layer):
 
 def decode_image(filters=128, initializer='orthogonal'):
     encode_img = tf.keras.Sequential([
+        AdaptiveAveragePooling2D(8),
         upBlock(filters, initializer=initializer),
         upBlock(filters // 2, initializer=initializer),
         upBlock(filters // 4, initializer=initializer),
         upBlock(filters // 8, initializer=initializer),
-        layers.Conv2D(3, 3, padding='same', kernel_initializer=initializer),
+        layers.Conv2D(3, 3, padding='same', 
+            use_bias=False, kernel_initializer=initializer),
         layers.Activation('tanh', dtype='float32')
     ])
     return encode_img
