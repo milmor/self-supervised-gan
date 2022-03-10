@@ -233,7 +233,8 @@ def train(args):
     noise_seed = tf.random.normal([num_examples_to_generate, 
                                    hparams['noise_dim']], seed=test_seed)
     train_batch = next(iter(train_ds))
-    start_epoch = int(gan.ckpt.epoch) + 1
+    gan.ckpt.epoch.assign_add(1)
+    start_epoch = int(gan.ckpt.epoch)
     start_epoch
 
     for _ in range(start_epoch, epochs):
