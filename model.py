@@ -87,7 +87,7 @@ def upBlock(filters, kernel_size=3, initializer='orthogonal'):
 
 def SEBlock(filters, kernel_size=4, activation='swish', initializer='orthogonal'):
     block = tf.keras.Sequential([
-                AdaptiveAveragePooling2D((4, 4)),
+                AdaptiveAveragePooling2D(4),
                 layers.Conv2D(filters=filters, 
                     kernel_size=4, 
                     activation=activation, 
@@ -134,7 +134,8 @@ class Generator(tf.keras.models.Model):
         
         self.up_256 = upBlock(filters // 32, initializer=initializer)
         self.se_256 = SEBlock(filters // 32, initializer=initializer)
-        self.ch_conv = layers.Conv2D(3, 3, padding='same', kernel_initializer=initializer)
+        self.ch_conv = layers.Conv2D(3, 3, padding='same', 
+                        use_bias=False, kernel_initializer=initializer)
         self.tanh = layers.Activation('tanh', dtype='float32')
                        
     def call(self, z):

@@ -22,7 +22,7 @@ def create_train_ds(train_dir, batch_size, seed=15):
     img_paths = tf.data.Dataset.list_files(str(train_dir))
     BUFFER_SIZE = tf.data.experimental.cardinality(img_paths)
      
-    img_paths = img_paths.cache().shuffle(BUFFER_SIZE, seed=seed)
+    img_paths = img_paths.cache().shuffle(BUFFER_SIZE)
     ds = img_paths.map(train_convert, num_parallel_calls=AUTOTUNE).batch(
         batch_size, drop_remainder=True, num_parallel_calls=AUTOTUNE).prefetch(
         AUTOTUNE)

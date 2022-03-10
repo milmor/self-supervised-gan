@@ -87,7 +87,6 @@ def run_training(args):
 
     ckpt_interval = args.ckpt_interval
     epochs = args.epochs
-    train_seed = args.train_seed
     test_seed = args.test_seed
     max_ckpt_to_keep = args.max_ckpt_to_keep
     global hparams
@@ -117,8 +116,8 @@ def run_training(args):
     os.makedirs(gen_test_dir, exist_ok=True)
     os.makedirs(disc_test_dir, exist_ok=True)
 
-    # Define model
-    train_ds = create_train_ds(file_pattern, hparams['batch_size'], train_seed)
+    # Define model and dataset
+    train_ds = create_train_ds(file_pattern, hparams['batch_size'])
 
     generator = Generator(filters=hparams['g_dim'], 
                              initializer=hparams['g_initializer'])
@@ -215,8 +214,7 @@ def main():
     parser.add_argument('--main_dir', default='model-1')
     parser.add_argument('--run_dir', default='run-1')
     parser.add_argument('--ckpt_interval', type=int, default=5)
-    parser.add_argument('--epochs', type=int, default=5000)
-    parser.add_argument('--train_seed', type=int, default=15)    
+    parser.add_argument('--epochs', type=int, default=5000)  
     parser.add_argument('--test_seed', type=int, default=15)  
     parser.add_argument('--max_ckpt_to_keep', type=int, default=5)  
     args = parser.parse_args()
