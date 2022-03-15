@@ -235,7 +235,6 @@ def train(args):
     train_batch = next(iter(train_ds))
     gan.ckpt.epoch.assign_add(1)
     start_epoch = int(gan.ckpt.epoch)
-    start_epoch
 
     for _ in range(start_epoch, epochs):
         start = time.time()
