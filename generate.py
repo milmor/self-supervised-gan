@@ -58,7 +58,7 @@ def run_generate(args):
     # Create epoch diractory
     test_dir = os.path.join(model_dir, 'test-dir')
     os.makedirs(test_dir, exist_ok=True)
-    epoch_dir = os.path.join(test_dir, 'epoch{}-{}'.format(str(ckpt.epoch.numpy()), str(n_images)))
+    epoch_dir = os.path.join(test_dir, f'epoch{int(ckpt.epoch.numpy())}-{n_images}')
     os.makedirs(epoch_dir, exist_ok=True)
 
     # Generate
