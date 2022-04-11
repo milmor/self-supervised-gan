@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -26,51 +27,42 @@ def create_train_ds(train_dir, batch_size, seed=15):
     ds = img_paths.map(train_convert, num_parallel_calls=AUTOTUNE).batch(
         batch_size, drop_remainder=True, num_parallel_calls=AUTOTUNE).prefetch(
         AUTOTUNE)
-    print('Train dataset size: {}'.format(BUFFER_SIZE))  
-    print('Batches: {}'.format(tf.data.experimental.cardinality(ds))) 
+    print(f'Train dataset size: {BUFFER_SIZE}')
+    print(f'Train batches: {tf.data.experimental.cardinality(ds)}')
     return ds
 
-def save_generator_img(model, epoch, noise, direct, plot_size=15):
+def save_generator_img(model, epoch, noise, direct):
     predictions = model(noise, training=False)
-    predictions = tf.clip_by_value(deprocess(predictions[0]), 0, 255) 
-    predictions = tf.cast(predictions, tf.uint8)
+    predictions = np.clip(deprocess(predictions[0]), 0, 255).astype(np.uint8)
 
-    fig = plt.figure(figsize=(plot_size, plot_size))
+    fig = plt.figure(figsize=(15, 15))
 
     for i in range(predictions.shape[0]):
-        plt.subplot(8, 8, i+1)
+        # create subplot and append to ax
+        fig.add_subplot(8, 8, i+1)
         plt.imshow(predictions[i, :, :, :])
         plt.axis('off')
-    plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-    path = os.path.join(direct, '{:04d}.png'.format(epoch))
-    plt.savefig(path)
-    # Clear the current axes.
-    plt.cla() 
-    # Clear the current figure.
-    plt.clf() 
-    # Closes all the figure windows.
-    plt.close('all')
 
-def save_decoder_img(model, epoch, img, direct, plot_size=6):
+    path = os.path.join(direct, f'{epoch:04d}.png')
+    plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+    plt.savefig(path, format='png')
+    plt.close()
+
+def save_decoder_img(model, epoch, img, direct):
     predictions = model(img, decode=True)
-    predictions = tf.clip_by_value(deprocess(predictions[1]), 0, 255) 
-    predictions = tf.cast(predictions, tf.uint8)
+    predictions = np.clip(deprocess(predictions[1]), 0, 255).astype(np.uint8) 
 
-    fig = plt.figure(figsize=(plot_size, plot_size))
+    fig = plt.figure(figsize=(8, 4))
 
     for i in range(predictions.shape[0]):
-        plt.subplot(4, 4, i+1)
+        fig.add_subplot(2, 4, i+1)
         plt.imshow(predictions[i, :, :, :])
         plt.axis('off')
+
+    path = os.path.join(direct, f'{epoch:04d}.png')
     plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-    path = os.path.join(direct, '{:04d}.png'.format(epoch))
-    plt.savefig(path)
-    # Clear the current axes.
-    plt.cla() 
-    # Clear the current figure.
-    plt.clf() 
-    # Closes all the figure windows.
-    plt.close('all')
+    plt.savefig(path, format='png')
+    plt.close()
 
 def get_loss(loss):
     if loss == 'bce':

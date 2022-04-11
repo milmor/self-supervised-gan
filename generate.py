@@ -32,14 +32,14 @@ def run_generate(args):
     if os.path.isfile(hparams_file):
         with open(hparams_file) as f:
             hparams = json.load(f)
-        print('hparams {} loaded'.format(hparams_file))
+        print(f'hparams {hparams_file} loaded')
     else:
         from hparams import hparams
         os.makedirs(model_dir, exist_ok=True)
         json_hparams = json.dumps(hparams)
         with open(hparams_file, 'w') as f:
             f.write(json_hparams)
-        print('hparams {} saved'.format(hparams_file))
+        print(f'hparams {hparams_file} saved')
 
     # Define model
     generator = Generator(filters=hparams['g_dim'], 
@@ -53,7 +53,7 @@ def run_generate(args):
 
     if ckpt_manager.latest_checkpoint:    
         ckpt.restore(ckpt_manager.latest_checkpoint).expect_partial()
-        print('\nCheckpoint restored from: {}'.format(ckpt_manager.latest_checkpoint))
+        print(f'\nCheckpoint restored from: {ckpt_manager.latest_checkpoint}')
 
     # Create epoch diractory
     test_dir = os.path.join(model_dir, 'test-dir')
@@ -64,10 +64,10 @@ def run_generate(args):
     # Generate
     start = time.time()
     gen_img = gen_batches(generator, n_images, batch_size, hparams['noise_dim'], epoch_dir)
-    print('Time: {:.4f} sec'.format(time.time()-start))  
+    print(f'Time: {time.time()-start} sec')  
 
 
-def gen_batches(model, n_images, batch_size, noise_dim, epoch_dir):
+def gen_batches(model, n_images, batch_size, noise_dim, dir_path):
     n_batches = n_images // batch_size
     
     for i in tqdm(range(n_batches)):
@@ -79,7 +79,7 @@ def gen_batches(model, n_images, batch_size, noise_dim, epoch_dir):
         img_index = start
         for img in gen_batch:
             img = Image.fromarray(img.astype('uint8'))
-            file_name = os.path.join(epoch_dir, '{}.jpg'.format(str(img_index)))
+            file_name = os.path.join(dir_path, f'{str(img_index)}.png')
             img.save(file_name)
             img_index += 1
 

@@ -117,9 +117,10 @@ class FastGAN(tf.keras.Model):
         self.ckpt_interval = ckpt_interval
         
         if self.ckpt_manager.latest_checkpoint:    
-            self.ckpt.restore(self.ckpt_manager.latest_checkpoint)
-            print('Checkpoint restored from {} at epoch {}'.format(self.ckpt_manager.latest_checkpoint,
-                                                                   int(self.ckpt.epoch)))
+            last_ckpt = self.ckpt_manager.latest_checkpoint
+            self.ckpt.restore(last_ckpt)
+            print(f'Checkpoint restored from {last_ckpt} at epoch {int(self.ckpt.epoch)}')
+            self.ckpt.epoch.assign_add(1)
             
     def save_log(self, verbose=1, reset_states=True):
         # Cast epoch
@@ -127,12 +128,12 @@ class FastGAN(tf.keras.Model):
         
         # Print metrics
         if verbose:
-            print('Epoch: {}'.format(epoch))
-            print('Generator loss: {:.4f}'.format(self.g_loss_avg.result()))
-            print('Discriminator loss: {:.4f}'.format(self.d_loss_avg.result()))
-            print('GP: {:.4f}'.format(self.gp_avg.result())) 
-            print('Reconstruction loss: {:.4f}'.format(self.rec_avg.result())) 
-            print('Discriminator total loss: {:.4f}\n'.format(self.d_total_avg.result()))      
+            print(f'Epoch: {epoch}')
+            print(f'Generator loss: {self.g_loss_avg.result():.4f}')
+            print(f'Discriminator loss: {self.d_loss_avg.result():.4f}')
+            print(f'GP: {self.gp_avg.result():.4f}') 
+            print(f'Reconstruction loss: {self.rec_avg.result():.4f}') 
+            print(f'Discriminator total loss: {self.d_total_avg.result():.4f}\n')     
             
         # Save metrics
         with self.writer.as_default():
@@ -180,14 +181,14 @@ def train(args):
     if os.path.isfile(hparams_file):
         with open(hparams_file) as f:
             hparams = json.load(f)
-        print('hparams {} loaded'.format(hparams_file))
+        print(f'hparams {hparams_file} loaded')
     else:
         from hparams import hparams
         os.makedirs(model_dir, exist_ok=True)
         json_hparams = json.dumps(hparams)
         with open(hparams_file, 'w') as f:
             f.write(json_hparams)
-        print('hparams {} saved'.format(hparams_file))
+        print(f'hparams {hparams_file} saved')
 
     gen_test_dir = os.path.join(model_dir, 'test-gen')
     disc_test_dir = os.path.join(model_dir, 'test-rec')
@@ -241,7 +242,7 @@ def train(args):
         for image_batch in train_ds:
             gan.train_step(image_batch)
             
-        print('Time for epoch is {} sec'.format(time.time()-start))
+        print(f'\nTime for epoch is {time.time()-start} sec')
         save_generator_img(gan.generator, int(gan.ckpt.epoch), noise_seed, gen_test_dir)
         save_decoder_img(gan.discriminator, int(gan.ckpt.epoch), train_batch, disc_test_dir)
         gan.save_log()

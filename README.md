@@ -25,7 +25,7 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 ### Train
 Use `--file_pattern=<file_pattern>` to provide the dataset path and file pattern.
 ```
-python train.py --file_pattern=./dataset_path/*.jpg
+python train.py --file_pattern=./dataset_path/*.png
 ```
 
 ### Generate
