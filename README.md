@@ -1,5 +1,5 @@
 # Self-Supervised GAN
-Implementation of the FastGAN model in the paper:
+Implementation of the _FastGAN_ model in the paper:
 
 > Bingchen Liu, Yizhe Zhu, Kunpeng Song and Ahmed Elgammal. [Towards Faster and Stabilized GAN Training for High-fidelity Few-shot Image Synthesis](https://arxiv.org/abs/2101.04775). 
 
