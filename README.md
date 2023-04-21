@@ -21,7 +21,7 @@ See [here](https://github.com/odegeasslbc/FastGAN-pytorch) for the official Pyto
 
 ## Usage
 ### Train
-Use `--file_pattern=<file_pattern>` to provide the dataset path and file pattern.
+Use `--file_pattern=<file_pattern>` to specify the dataset path and file pattern.
 ```
 python train.py --file_pattern=./dataset_path/*.png
 ```
@@ -33,7 +33,7 @@ python generate.py --main_dir=<main_dir>
 ```
 
 ### Hparams setting
-Adjust hyperparameters on the `hparams.py` file.
+Adjust hyperparameters in the `hparams.py` file.
 
 ### Tensorboard
 Run `tensorboard --logdir ./`.
