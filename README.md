@@ -27,7 +27,7 @@ python train.py --file_pattern=./dataset_path/*.png
 ```
 
 ### Generate
-Use `--main_dir=<main_dir>` to provide the model directory name.
+Use `--main_dir=<main_dir>` to specify the model directory name.
 ```
 python generate.py --main_dir=<main_dir>
 ```
